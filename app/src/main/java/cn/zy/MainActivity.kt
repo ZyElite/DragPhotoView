@@ -1,6 +1,7 @@
 package cn.zy
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -31,7 +32,9 @@ class MainActivity : AppCompatActivity() {
         adapter.replace(datas)
         adapter.setClick(object : BiConsumer<Drawable, Int> {
             override fun accept(t: Drawable, u: Int) {
-                Toast.makeText(this@MainActivity, "click:$u", Toast.LENGTH_LONG).show()
+                startActivity(Intent(this@MainActivity, PreviewActivity::class.java)
+                        .putExtra("position", u)
+                )
             }
         })
     }
