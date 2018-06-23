@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.animation.AlphaAnimation
+import cn.zy.function.Consumer
 import com.github.chrisbanes.photoview.PhotoView
 
 
@@ -35,6 +36,7 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
         super.onSizeChanged(w, h, oldw, oldh)
         mWidth = w
         mHeight = h
+        Log.e(tag,"width : $w   height:$h")
     }
 
     private var mWidth = 0
@@ -55,9 +57,17 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
 
     private var mTranslateY: Float = 0F
     private var mTranslateX: Float = 0F
+    private var moveX:Float = 0F
+
 
     //用作移动的距离 算出缩放 透明度 的比值
-    private var MAX_TRANSLATEY = 300
+    private var MAX_TRANSLATEY = 500
+
+    private var consumer:Consumer<Float>? = null
+
+    fun setOnExitListener(consumer: Consumer<Float>){
+        this.consumer = consumer
+    }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
@@ -66,7 +76,14 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
                 mDownY = event.rawY
             }
             MotionEvent.ACTION_UP -> {
-
+                if(mTranslateY>0){
+                    moveX = event.rawX
+                   if (consumer!=null) consumer!!.accept(moveX)
+                }else{
+                    mTranslateX=0F
+                    mTranslateY=0F
+                    invalidate()
+                }
             }
 
             MotionEvent.ACTION_MOVE -> {
@@ -74,7 +91,7 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
                 val rawY = event.rawY
                 mTranslateY = rawY - mDownY
                 mTranslateX = rawX - mDownX
-                if (Math.abs(mTranslateY) > 50) {
+                if (Math.abs(mTranslateY) > 10) {
                     val percent = mTranslateY / MAX_TRANSLATEY
                     mAlpha = (255 * (1 - percent)).toInt()
                     mScale = 1 - percent
