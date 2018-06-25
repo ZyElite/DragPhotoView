@@ -5,6 +5,6 @@ package cn.zy.function
  * zy
  */
 @FunctionalInterface
-interface Consumer< in T> {
+interface Consumer< T > {
      fun accept(t: T)
 }

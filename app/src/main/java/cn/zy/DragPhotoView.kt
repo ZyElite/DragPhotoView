@@ -36,7 +36,6 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
         super.onSizeChanged(w, h, oldw, oldh)
         mWidth = w
         mHeight = h
-        Log.e(tag,"width : $w   height:$h")
     }
 
     private var mWidth = 0
@@ -57,16 +56,26 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
 
     private var mTranslateY: Float = 0F
     private var mTranslateX: Float = 0F
-    private var moveX:Float = 0F
+    private var moveX: Float = 0F
 
 
     //用作移动的距离 算出缩放 透明度 的比值
     private var MAX_TRANSLATEY = 500
 
-    private var consumer:Consumer<Float>? = null
+//    private var consumer: Consumer<Int>? = null
+//
+//    fun setOnExitListener(consumer: Consumer<Int>) {
+//        this.consumer = consumer
+//    }
 
-    fun setOnExitListener(consumer: Consumer<Float>){
-        this.consumer = consumer
+    private var mOnExitClickListener: OnExitClickListener? = null
+
+    fun setOnExitListener(consumer: OnExitClickListener) {
+        this.mOnExitClickListener = consumer
+    }
+
+    interface OnExitClickListener {
+        fun onExitLostener(dragPhotoView: DragPhotoView,translateX: Float, translateY: Float, width: Int, height: Int)
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -76,12 +85,16 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
                 mDownY = event.rawY
             }
             MotionEvent.ACTION_UP -> {
-                if(mTranslateY>0){
-                    moveX = event.rawX
-                   if (consumer!=null) consumer!!.accept(moveX)
-                }else{
-                    mTranslateX=0F
-                    mTranslateY=0F
+                if (mTranslateY > 0) {
+                    Log.e(tag, "Xx=$x   Yy=$y mTranslatex=$mTranslateX  mTranslateY =$mTranslateY")
+                    if (mOnExitClickListener != null) {
+                        mOnExitClickListener!!.onExitLostener(this,mTranslateX, mTranslateY, width, height)
+                    }
+//                    moveX = event.rawX
+//                   if (consumer!=null) consumer!!.accept(0)
+                } else {
+                    mTranslateX = 0F
+                    mTranslateY = 0F
                     invalidate()
                 }
             }
