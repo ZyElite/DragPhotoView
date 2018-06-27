@@ -1,8 +1,6 @@
 package cn.zy
 
 import android.animation.Animator
-import android.animation.ValueAnimator
-import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -19,7 +17,7 @@ class PreviewActivity : AppCompatActivity() {
 
     private var mCurrentHeight = 0
     private var mCurrentWidth = 0
-
+    private var mAdapter: ImageAdapter? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_preview)
@@ -27,7 +25,8 @@ class PreviewActivity : AppCompatActivity() {
         val location = intent.getIntArrayExtra("location")
         mCurrentHeight = intent.getIntExtra("height", 0)
         mCurrentWidth = intent.getIntExtra("width", 0)
-
+        val left = intent.getIntExtra("left", 0)
+        val top = intent.getIntExtra("top", 0)
         Log.e("DragPhotoView", "x:" + location[0] + "  y:" + location[1])
         val datas = ArrayList<Drawable>()
         datas.add(resources.getDrawable(R.mipmap.ic_1))
@@ -35,17 +34,21 @@ class PreviewActivity : AppCompatActivity() {
         datas.add(resources.getDrawable(R.mipmap.ic_3))
         datas.add(resources.getDrawable(R.mipmap.ic_4))
         datas.add(resources.getDrawable(R.mipmap.ic_5))
-        val adapter = ImageAdapter(datas)
-        viewPager.adapter = adapter
-        adapter.setLocation(location, position)
-        adapter.setTarget(mCurrentHeight, mCurrentWidth)
-        adapter.setExitListener(object : Consumer<View> {
-            override fun accept(t: View) {
+        mAdapter = ImageAdapter(datas)
+        viewPager.adapter = mAdapter
+        mAdapter!!.setLocation(location, position)
+        mAdapter!!.setTarget(mCurrentHeight, mCurrentWidth, left, top)
+        viewPager.currentItem = position
+        mAdapter!!.setExit(object:ImageAdapter.OnExit{
+            override fun onExit() {
                 finish()
             }
 
         })
-        viewPager.currentItem = position
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
     }
 
     class ImageAdapter(private var datas: List<Drawable>) : PagerAdapter() {
@@ -53,17 +56,31 @@ class PreviewActivity : AppCompatActivity() {
         private var currentPosition: Int = 0
         private var mCurrentHeight = 0
         private var mCurrentWidth = 0
+        private var left = 0
+        private var top = 0
 
+        private var consumer: Consumer<Animator>? = null
 
-        private var consumer: Consumer<View>? = null
+        private var exit: OnExit? = null
 
-        fun setTarget(targetHeight: Int, targerWidth: Int) {
-            this.mCurrentHeight = targetHeight
-            this.mCurrentWidth = targerWidth
+        fun setExit(exit:OnExit){
+            this.exit = exit
+        }
+
+        interface OnExit {
+            fun onExit()
         }
 
 
-        fun setExitListener(consumer: Consumer<View>) {
+        fun setTarget(targetHeight: Int, targerWidth: Int, left: Int, top: Int) {
+            this.mCurrentHeight = targetHeight
+            this.mCurrentWidth = targerWidth
+            this.left = left
+            this.top = top
+
+        }
+
+        fun setCancelListener(consumer: Consumer<Animator>) {
             this.consumer = consumer
         }
 
@@ -75,62 +92,17 @@ class PreviewActivity : AppCompatActivity() {
         override fun instantiateItem(container: ViewGroup, position: Int): Any {
             val dragPhotoView = LayoutInflater.from(container.context).inflate(R.layout.item_preview_layout, null) as DragPhotoView
             Glide.with(container.context).load(datas[position]).into(dragPhotoView)
-
             dragPhotoView.setOnExitListener(object : DragPhotoView.OnExitClickListener {
-                override fun onExitLostener(dragPhotoView: DragPhotoView, translateX: Float, translateY: Float, width: Int, height: Int) {
-                    dragPhotoView.scaleY = mCurrentHeight / height * 1F
-                    dragPhotoView.scaleX = mCurrentWidth / width * 1F
-
-                    dragPhotoView.translationX = translateX
-                    dragPhotoView.translationY = translateY
-//                    dragPhotoView.scaleX = 0.3F
-//                    dragPhotoView.scaleY = 0.3F
-
-
-                    val animator = ValueAnimator.ofFloat(translateX, 0F)
-                    animator!!.duration = 1000
-                    animator.addUpdateListener {
-                        dragPhotoView.x = it.animatedValue as Float
+                override fun onExitListener() {
+                    if (exit!=null){
+                        exit!!.onExit()
                     }
-                    animator.start()
-                    Log.e("asd", "x = ${dragPhotoView.x} y = ${dragPhotoView.y}")
                 }
 
+                override fun onCancelListener(animation: Animator?) {
 
+                }
             })
-
-//            dragPhotoView.setOnExitListener(object : Consumer<Int> {
-//                override fun accept(t: Int) {
-//                    if (currentPosition == position) {
-//                        val animator = ValueAnimator.ofInt(t, location!![0])
-//                        animator.duration = 1000
-//                        animator.addUpdateListener {
-//                            val value: Int = it.animatedValue as Int
-//                            dragPhotoView.layout(value, value, value + dragPhotoView.width, value + dragPhotoView.height)
-//                        }
-//
-//                        animator.addListener(object : Animator.AnimatorListener {
-//                            override fun onAnimationRepeat(animation: Animator?) {
-//                            }
-//
-//                            override fun onAnimationEnd(animation: Animator?) {
-//                                if (consumer!=null) {
-//                                    consumer!!.accept(dragPhotoView)
-//                                }
-//                            }
-//
-//                            override fun onAnimationCancel(animation: Animator?) {
-//                            }
-//
-//                            override fun onAnimationStart(animation: Animator?) {
-//                            }
-//
-//                        })
-//                        animator.start()
-//
-//                    }
-//                }
-//            })
             container.addView(dragPhotoView)
             return dragPhotoView
         }
@@ -147,5 +119,6 @@ class PreviewActivity : AppCompatActivity() {
             container.removeView(`object` as View?)
         }
     }
+
 
 }

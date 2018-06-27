@@ -1,15 +1,13 @@
 package cn.zy
 
+import android.animation.Animator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
-import android.view.animation.AlphaAnimation
-import cn.zy.function.Consumer
 import com.github.chrisbanes.photoview.PhotoView
 
 
@@ -62,12 +60,6 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
     //用作移动的距离 算出缩放 透明度 的比值
     private var MAX_TRANSLATEY = 500
 
-//    private var consumer: Consumer<Int>? = null
-//
-//    fun setOnExitListener(consumer: Consumer<Int>) {
-//        this.consumer = consumer
-//    }
-
     private var mOnExitClickListener: OnExitClickListener? = null
 
     fun setOnExitListener(consumer: OnExitClickListener) {
@@ -75,7 +67,12 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
     }
 
     interface OnExitClickListener {
-        fun onExitLostener(dragPhotoView: DragPhotoView,translateX: Float, translateY: Float, width: Int, height: Int)
+
+//        fun onExit(dragPhotoView: DragPhotoView, translateX: Float, translateY: Float, width: Int, height: Int)
+
+        fun onExitListener()
+
+        fun onCancelListener(animation: Animator?)
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -86,12 +83,39 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
             }
             MotionEvent.ACTION_UP -> {
                 if (mTranslateY > 0) {
-                    Log.e(tag, "Xx=$x   Yy=$y mTranslatex=$mTranslateX  mTranslateY =$mTranslateY")
                     if (mOnExitClickListener != null) {
-                        mOnExitClickListener!!.onExitLostener(this,mTranslateX, mTranslateY, width, height)
+                        val valueAnimatorX = ValueAnimator.ofFloat(mTranslateX, 0F)
+
+                        valueAnimatorX.duration = 1000
+                        valueAnimatorX.addUpdateListener {
+                            mTranslateX = it.animatedValue as Float
+                            invalidate()
+                        }
+                        valueAnimatorX.start()
+                        val valueAnimatorY = ValueAnimator.ofFloat(mTranslateY, 0F)
+                        valueAnimatorY.duration = 1000
+                        valueAnimatorY.start()
+                        valueAnimatorY.addUpdateListener {
+                            mTranslateY = it.animatedValue as Float
+                            invalidate()
+                        }
+                        valueAnimatorY.addListener(object : Animator.AnimatorListener {
+                            override fun onAnimationRepeat(animation: Animator?) {
+                            }
+
+                            override fun onAnimationEnd(animation: Animator?) {
+                                mOnExitClickListener!!.onExitListener()
+                            }
+
+                            override fun onAnimationCancel(animation: Animator?) {
+                            }
+
+                            override fun onAnimationStart(animation: Animator?) {
+                                mOnExitClickListener!!.onCancelListener(animation)
+                            }
+                        })
+
                     }
-//                    moveX = event.rawX
-//                   if (consumer!=null) consumer!!.accept(0)
                 } else {
                     mTranslateX = 0F
                     mTranslateY = 0F
@@ -124,21 +148,6 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
             }
         }
         return super.dispatchTouchEvent(event)
-    }
-
-
-    private fun animation() {
-        val alphaAnimation = AlphaAnimation(1F, 0F)
-        alphaAnimation.duration = 500
-        this.startAnimation(alphaAnimation)
-    }
-
-
-    private fun getAlphaAnimation(): ValueAnimator {
-        val animator = ValueAnimator.ofInt(mAlpha, 255)
-        animator.duration = DURATION
-        animator.addUpdateListener { valueAnimator -> mAlpha = valueAnimator.animatedValue as Int }
-        return animator
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {

@@ -40,6 +40,8 @@ class MainActivity : AppCompatActivity() {
                         .putExtra("location", location)
                         .putExtra("height", t.height)
                         .putExtra("width", t.width)
+                        .putExtra("left", t.left)
+                        .putExtra("top", t.top)
                 )
             }
         })
