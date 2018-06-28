@@ -7,6 +7,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import com.github.chrisbanes.photoview.PhotoView
 
@@ -34,6 +35,7 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
         super.onSizeChanged(w, h, oldw, oldh)
         mWidth = w
         mHeight = h
+        Log.e(tag, "width1 = $mWidth height1 = $height")
     }
 
     private var mWidth = 0
@@ -44,17 +46,15 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
     private var mDownY = 0F
     //不透明
     private var mAlpha = 255
-    //默认动画执行时间
-    private val DURATION: Long = 300
+
     //最小滑动距离
     private var mMinY = 50F
     private var mScale = 1F
     //最小缩放
-    private var MIN_SCALE = 0.5f
+    private var MIN_SCALE = 0.3f
 
     private var mTranslateY: Float = 0F
     private var mTranslateX: Float = 0F
-    private var moveX: Float = 0F
 
 
     //用作移动的距离 算出缩放 透明度 的比值
@@ -68,7 +68,7 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
 
     interface OnExitClickListener {
 
-//        fun onExit(dragPhotoView: DragPhotoView, translateX: Float, translateY: Float, width: Int, height: Int)
+        fun onExit(dragPhotoView: DragPhotoView, translateX: Float, translateY: Float, width: Int, height: Int)
 
         fun onExitListener()
 
@@ -84,36 +84,38 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
             MotionEvent.ACTION_UP -> {
                 if (mTranslateY > 0) {
                     if (mOnExitClickListener != null) {
-                        val valueAnimatorX = ValueAnimator.ofFloat(mTranslateX, 0F)
+                        mOnExitClickListener!!.onExit(this, mTranslateX, mTranslateY, mWidth, mHeight)
 
-                        valueAnimatorX.duration = 1000
-                        valueAnimatorX.addUpdateListener {
-                            mTranslateX = it.animatedValue as Float
-                            invalidate()
-                        }
-                        valueAnimatorX.start()
-                        val valueAnimatorY = ValueAnimator.ofFloat(mTranslateY, 0F)
-                        valueAnimatorY.duration = 1000
-                        valueAnimatorY.start()
-                        valueAnimatorY.addUpdateListener {
-                            mTranslateY = it.animatedValue as Float
-                            invalidate()
-                        }
-                        valueAnimatorY.addListener(object : Animator.AnimatorListener {
-                            override fun onAnimationRepeat(animation: Animator?) {
-                            }
-
-                            override fun onAnimationEnd(animation: Animator?) {
-                                mOnExitClickListener!!.onExitListener()
-                            }
-
-                            override fun onAnimationCancel(animation: Animator?) {
-                            }
-
-                            override fun onAnimationStart(animation: Animator?) {
-                                mOnExitClickListener!!.onCancelListener(animation)
-                            }
-                        })
+//                        val valueAnimatorX = ValueAnimator.ofFloat(mTranslateX, 0F)
+//
+//                        valueAnimatorX.duration = 1000
+//                        valueAnimatorX.addUpdateListener {
+//                            mTranslateX = it.animatedValue as Float
+//                            invalidate()
+//                        }
+//                        valueAnimatorX.start()
+//                        val valueAnimatorY = ValueAnimator.ofFloat(mTranslateY, 0F)
+//                        valueAnimatorY.duration = 1000
+//                        valueAnimatorY.start()
+//                        valueAnimatorY.addUpdateListener {
+//                            mTranslateY = it.animatedValue as Float
+//                            invalidate()
+//                        }
+//                        valueAnimatorY.addListener(object : Animator.AnimatorListener {
+//                            override fun onAnimationRepeat(animation: Animator?) {
+//                            }
+//
+//                            override fun onAnimationEnd(animation: Animator?) {
+//                                mOnExitClickListener!!.onExitListener()
+//                            }
+//
+//                            override fun onAnimationCancel(animation: Animator?) {
+//                            }
+//
+//                            override fun onAnimationStart(animation: Animator?) {
+//                                mOnExitClickListener!!.onCancelListener(animation)
+//                            }
+//                        })
 
                     }
                 } else {
@@ -130,19 +132,21 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
                 mTranslateX = rawX - mDownX
                 if (Math.abs(mTranslateY) > 10) {
                     val percent = mTranslateY / MAX_TRANSLATEY
-                    mAlpha = (255 * (1 - percent)).toInt()
-                    mScale = 1 - percent
-                    if (mScale < MIN_SCALE) {
-                        mScale = MIN_SCALE
-                    } else if (mScale > 1) {
-                        mScale = 1F
+                    if (mScale in MIN_SCALE..1.0F) {
+                        mAlpha = (255 * (1 - percent)).toInt()
+                        mScale = 1 - percent
+                        if (mScale <= MIN_SCALE) {
+                            mScale = MIN_SCALE
+                        } else if (mScale > 1) {
+                            mScale = 1F
+                        }
+                        if (mAlpha > 255) {
+                            mAlpha = 255
+                        } else if (mAlpha < 0) {
+                            mAlpha = 0
+                        }
+                        invalidate()
                     }
-                    if (mAlpha > 255) {
-                        mAlpha = 255
-                    } else if (mAlpha < 0) {
-                        mAlpha = 0
-                    }
-                    invalidate()
                 }
 
             }
