@@ -6,10 +6,12 @@ import android.graphics.drawable.Drawable
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.view.PagerAdapter
+import android.support.v4.view.ViewPager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ViewAnimator
 import cn.zy.function.Consumer
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.activity_preview.*
@@ -98,12 +100,7 @@ class PreviewActivity : AppCompatActivity() {
             val dragPhotoView = LayoutInflater.from(container.context).inflate(R.layout.item_preview_layout, null) as DragPhotoView
             Glide.with(container.context).load(datas[position]).into(dragPhotoView)
             dragPhotoView.setOnExitListener(object : DragPhotoView.OnExitClickListener {
-                override fun onExit(view: DragPhotoView, translateX: Float, translateY: Float, width: Int, height: Int) {
-
-//                    val viewX = width / 2 + translateX - location!![0] / 2
-//                    val viewY = height / 2 + translateY - location!![1] / 2
-//                    view.x = viewX
-//                    view.y = viewY
+                override fun onExit(view: DragPhotoView, translateX: Float, translateY: Float, width: Int, height: Int, scale: Float) {
                     val targetX = location!![0] + mCurrentWidth / 2
                     val targetY = location!![1] + mCurrentHeight / 2
                     val mTranslateX = if (targetX > width / 2) {
@@ -111,17 +108,15 @@ class PreviewActivity : AppCompatActivity() {
                     } else {
                         -translateX - Math.abs(targetX - width / 2)
                     }
-
                     val mTranslateY = if (targetY > height / 2) {
                         -translateY + (targetY - height / 2)
                     } else {
-                        -translateY -  Math.abs(targetY - height / 2)
+                        -translateY - Math.abs(targetY - height / 2)
                     }
-                    var animatorX = ValueAnimator.ofFloat(0F, mTranslateX)
-                    var animatorY = ValueAnimator.ofFloat(0F, mTranslateY)
-                    animatorX.duration = 3000
-                    animatorY.duration = 3000
-
+                    val animatorX = ValueAnimator.ofFloat(0F, mTranslateX)
+                    val animatorY = ValueAnimator.ofFloat(0F, mTranslateY)
+                    animatorX.duration = 1000
+                    animatorY.duration = 1000
 
                     animatorX.addUpdateListener {
                         view.x = it.animatedValue as Float
@@ -129,62 +124,28 @@ class PreviewActivity : AppCompatActivity() {
                     animatorY.addUpdateListener {
                         view.y = it.animatedValue as Float
                     }
-
-
                     animatorX.start()
                     animatorY.start()
 
+                    animatorY.addListener(object : Animator.AnimatorListener {
+                        override fun onAnimationRepeat(animation: Animator?) {
+                        }
 
-//                    view.finishAnimationCallBack()
+                        override fun onAnimationEnd(animation: Animator?) {
+                            mActivity!!.finish()
+                            mActivity!!.overridePendingTransition(0, 0)
+                        }
 
-//                    val viewX = width / 2 + translateX - location!![0] / 2
-//                    val viewY = height / 2 + translateY - location!![1] / 2
-//                    view.x = viewX
-//                    view.y = viewY
-//                    val centerX = view.x + width / 2
-//                    val centerY = view.y + height / 2
-//                    val mtranslateX = left + width / 2 - centerX
-//                    val mtranslateY = top + height / 2 - centerY
-//                    val translateXAnimator = ValueAnimator.ofFloat(view.x, view.x + mtranslateX)
-//                    translateXAnimator.addUpdateListener { valueAnimator -> view.x = valueAnimator.animatedValue as Float }
-//                    translateXAnimator.duration = 3000
-//                    translateXAnimator.start()
-//                    val translateYAnimator = ValueAnimator.ofFloat(view.y, view.y + mtranslateY)
-//                    translateYAnimator.addUpdateListener { valueAnimator -> view.y = valueAnimator.animatedValue as Float }
-//                    translateYAnimator.addListener(object : Animator.AnimatorListener {
-//                        override fun onAnimationStart(animator: Animator) {
-//
-//                        }
-//
-//                        override fun onAnimationEnd(animator: Animator) {
-//                            animator.removeAllListeners()
-//                            mActivity!!.finish()
-//                            mActivity!!.overridePendingTransition(0,0)
-////                            finish()
-////                            overridePendingTransition(0, 0)
-//                        }
-//
-//                        override fun onAnimationCancel(animator: Animator) {
-//
-//                        }
-//
-//                        override fun onAnimationRepeat(animator: Animator) {
-//
-//                        }
-//                    })
-//                    translateYAnimator.duration = 3000
-//                    translateYAnimator.start()
-                }
+                        override fun onAnimationCancel(animation: Animator?) {
+                        }
 
-                override fun onExitListener() {
-                    if (exit != null) {
-                        exit!!.onExit()
-                    }
-                }
+                        override fun onAnimationStart(animation: Animator?) {
+                        }
 
-                override fun onCancelListener(animation: Animator?) {
+                    })
 
                 }
+
             })
             container.addView(dragPhotoView)
             return dragPhotoView
@@ -202,6 +163,5 @@ class PreviewActivity : AppCompatActivity() {
             container.removeView(`object` as View?)
         }
     }
-
 
 }

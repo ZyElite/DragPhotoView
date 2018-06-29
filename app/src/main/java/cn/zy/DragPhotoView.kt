@@ -1,7 +1,6 @@
 package cn.zy
 
 import android.animation.Animator
-import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -19,12 +18,12 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
 
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0) {
         mPaint = Paint()
-        mPaint!!.color = Color.TRANSPARENT
+        mPaint!!.color = Color.BLACK
     }
 
     override fun onDraw(canvas: Canvas) {
         mPaint?.alpha = mAlpha
-        canvas.drawRect(0f, 0f, mWidth.toFloat(), mHeight.toFloat(), mPaint)
+        canvas.drawRect(0F, 0F, mWidth.toFloat(), mHeight.toFloat(), mPaint)
         canvas.translate(mTranslateX, mTranslateY)
         canvas.scale(mScale, mScale, (mWidth / 2).toFloat(), (mHeight / 2).toFloat())
         super.onDraw(canvas)
@@ -35,7 +34,6 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
         super.onSizeChanged(w, h, oldw, oldh)
         mWidth = w
         mHeight = h
-        Log.e(tag, "width1 = $mWidth height1 = $height")
     }
 
     private var mWidth = 0
@@ -47,8 +45,6 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
     //不透明
     private var mAlpha = 255
 
-    //最小滑动距离
-    private var mMinY = 50F
     private var mScale = 1F
     //最小缩放
     private var MIN_SCALE = 0.3f
@@ -67,12 +63,11 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
     }
 
     interface OnExitClickListener {
+        fun onExit(dragPhotoView: DragPhotoView, translateX: Float, translateY: Float, width: Int, height: Int, scale: Float)
+    }
 
-        fun onExit(dragPhotoView: DragPhotoView, translateX: Float, translateY: Float, width: Int, height: Int)
-
-        fun onExitListener()
-
-        fun onCancelListener(animation: Animator?)
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -84,39 +79,20 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
             MotionEvent.ACTION_UP -> {
                 if (mTranslateY > 0) {
                     if (mOnExitClickListener != null) {
-                        mOnExitClickListener!!.onExit(this, mTranslateX, mTranslateY, mWidth, mHeight)
-
-//                        val valueAnimatorX = ValueAnimator.ofFloat(mTranslateX, 0F)
-//
-//                        valueAnimatorX.duration = 1000
-//                        valueAnimatorX.addUpdateListener {
-//                            mTranslateX = it.animatedValue as Float
-//                            invalidate()
-//                        }
-//                        valueAnimatorX.start()
-//                        val valueAnimatorY = ValueAnimator.ofFloat(mTranslateY, 0F)
-//                        valueAnimatorY.duration = 1000
-//                        valueAnimatorY.start()
-//                        valueAnimatorY.addUpdateListener {
-//                            mTranslateY = it.animatedValue as Float
-//                            invalidate()
-//                        }
-//                        valueAnimatorY.addListener(object : Animator.AnimatorListener {
-//                            override fun onAnimationRepeat(animation: Animator?) {
-//                            }
-//
-//                            override fun onAnimationEnd(animation: Animator?) {
-//                                mOnExitClickListener!!.onExitListener()
-//                            }
-//
-//                            override fun onAnimationCancel(animation: Animator?) {
-//                            }
-//
-//                            override fun onAnimationStart(animation: Animator?) {
-//                                mOnExitClickListener!!.onCancelListener(animation)
-//                            }
-//                        })
-
+                        val maxTranslateY = height / 2 * 1F - (height * mScale / 2)
+                        val maxTranslateX = width / 2 * 1F - (width * mScale / 2)
+                        if (mTranslateY > maxTranslateY) {
+                            mTranslateY = maxTranslateY
+                            invalidate()
+                        }
+                        if (Math.abs(mTranslateX) > maxTranslateX) {
+                            mTranslateX = if (mTranslateX < 0)
+                                -maxTranslateX
+                            else maxTranslateX
+                            invalidate()
+                        }
+                        mOnExitClickListener!!.onExit(this, mTranslateX, mTranslateY, mWidth, mHeight, mScale)
+                        return true
                     }
                 } else {
                     mTranslateX = 0F
@@ -153,10 +129,4 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
         }
         return super.dispatchTouchEvent(event)
     }
-
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        return super.onTouchEvent(event)
-    }
-
-
 }
