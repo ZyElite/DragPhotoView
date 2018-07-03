@@ -32,8 +32,6 @@ class PreviewActivity : AppCompatActivity() {
         val location = intent.getIntArrayExtra("location")
         mCurrentHeight = intent.getIntExtra("height", 0)
         mCurrentWidth = intent.getIntExtra("width", 0)
-        val left = intent.getIntExtra("left", 0)
-        val top = intent.getIntExtra("top", 0)
         val datas = ArrayList<Drawable>()
         datas.add(resources.getDrawable(R.mipmap.ic_1))
         datas.add(resources.getDrawable(R.mipmap.ic_2))
@@ -43,7 +41,7 @@ class PreviewActivity : AppCompatActivity() {
         mAdapter = ImageAdapter(datas)
         viewPager.adapter = mAdapter
         mAdapter!!.setLocation(location, position)
-        mAdapter!!.setTarget(mCurrentHeight, mCurrentWidth, left, top)
+        mAdapter!!.setTarget(mCurrentHeight, mCurrentWidth)
         viewPager.currentItem = position
         mAdapter!!.setActivity(this)
     }
@@ -58,17 +56,12 @@ class PreviewActivity : AppCompatActivity() {
         private var currentPosition: Int = 0
         private var mCurrentHeight = 0
         private var mCurrentWidth = 0
-        private var left = 0
-        private var top = 0
         private var mActivity: AppCompatActivity? = null
 
 
-        fun setTarget(targetHeight: Int, targerWidth: Int, left: Int, top: Int) {
+        fun setTarget(targetHeight: Int, targerWidth: Int) {
             this.mCurrentHeight = targetHeight
             this.mCurrentWidth = targerWidth
-            this.left = left
-            this.top = top
-
         }
 
         fun setActivity(activity: AppCompatActivity) {
