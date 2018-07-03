@@ -114,21 +114,19 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
                 mTranslateX = rawX - mDownX
                 if (Math.abs(mTranslateY) > 10) {
                     val percent = mTranslateY / MAX_TRANSLATEY
-                    if (mScale in MIN_SCALE..1.0F) {
-                        mAlpha = (255 * (1 - percent)).toInt()
-                        mScale = 1 - percent
-                        if (mScale <= MIN_SCALE) {
-                            mScale = MIN_SCALE
-                        } else if (mScale > 1) {
-                            mScale = 1F
-                        }
-                        if (mAlpha > 255) {
-                            mAlpha = 255
-                        } else if (mAlpha < 0) {
-                            mAlpha = 0
-                        }
-                        invalidate()
+                    mAlpha = (255 * (1 - percent)).toInt()
+                    mScale = 1 - percent
+                    if (mScale <= MIN_SCALE) {
+                        mScale = MIN_SCALE
+                    } else if (mScale > 1) {
+                        mScale = 1F
                     }
+                    if (mAlpha > 255) {
+                        mAlpha = 255
+                    } else if (mAlpha < 0) {
+                        mAlpha = 0
+                    }
+                    invalidate()
                 }
 
             }
@@ -160,7 +158,7 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
 
             override fun onAnimationEnd(animation: Animator?) {
                 activity.finish()
-                activity.overridePendingTransition(0, 0 )
+                activity.overridePendingTransition(0, 0)
             }
 
             override fun onAnimationCancel(animation: Animator?) {
