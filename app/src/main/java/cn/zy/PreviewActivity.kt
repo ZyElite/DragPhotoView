@@ -27,7 +27,6 @@ class PreviewActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_preview)
-        windowManager.defaultDisplay.height
         val position = intent.getIntExtra("position", 0)
         val location = intent.getIntArrayExtra("location")
         mCurrentHeight = intent.getIntExtra("height", 0)
