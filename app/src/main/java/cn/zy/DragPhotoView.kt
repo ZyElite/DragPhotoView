@@ -1,16 +1,20 @@
 package cn.zy
 
-import android.animation.Animator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import com.github.chrisbanes.photoview.PhotoView
 
 
+/**
+ * @author ZyElite
+ * @date 2018-06-25
+ * @depot https://github.com/ZyElite/DragPhotoView
+ *
+ */
 class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : PhotoView(context, attrs, defStyleAttr) {
     private var tag = "DragPhotoView"
 
@@ -63,11 +67,7 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
     }
 
     interface OnExitClickListener {
-        fun onExit(dragPhotoView: DragPhotoView, translateX: Float, translateY: Float, width: Int, height: Int, scale: Float)
-    }
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        fun onExit(dragPhotoView: DragPhotoView, translateX: Float, translateY: Float, width: Int, height: Int, alpha: Float)
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -91,6 +91,8 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
                             else maxTranslateX
                             invalidate()
                         }
+                        mAlpha = 0
+                        invalidate()
                         mOnExitClickListener!!.onExit(this, mTranslateX, mTranslateY, mWidth, mHeight, mScale)
                         return true
                     }

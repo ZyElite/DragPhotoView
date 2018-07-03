@@ -17,6 +17,12 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.item_recycle_layout.view.*
 import kotlin.collections.ArrayList
 
+/**
+ * @author ZyElite
+ * @date 2018-06-25
+ * @depot https://github.com/ZyElite/DragPhotoView
+ *
+ */
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
