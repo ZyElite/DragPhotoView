@@ -174,4 +174,4 @@
 暂时这样我们的效果就实现了，有疑问可以联系我。
 
 附上实现效果：
-<iframe height=500 width=500 src="‪https://github.com/ZyElite/DragPhotoView/blob/master/resources/preview.mp4">         
+<iframe height=498 width=510 src="https://github.com/ZyElite/DragPhotoView/blob/master/resources/preview.mp4" frameborder=0 allowfullscreen></iframe>
