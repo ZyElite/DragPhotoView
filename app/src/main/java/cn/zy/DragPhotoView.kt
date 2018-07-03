@@ -1,9 +1,13 @@
 package cn.zy
 
+import android.animation.Animator
+import android.animation.AnimatorSet
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.support.v7.app.AppCompatActivity
 import android.util.AttributeSet
 import android.view.MotionEvent
 import com.github.chrisbanes.photoview.PhotoView
@@ -67,7 +71,7 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
     }
 
     interface OnExitClickListener {
-        fun onExit(dragPhotoView: DragPhotoView, translateX: Float, translateY: Float, width: Int, height: Int, alpha: Float)
+        fun onExit(dragPhotoView: DragPhotoView, translateX: Float, translateY: Float, width: Int, height: Int)
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -93,7 +97,7 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
                         }
                         mAlpha = 0
                         invalidate()
-                        mOnExitClickListener!!.onExit(this, mTranslateX, mTranslateY, mWidth, mHeight, mScale)
+                        mOnExitClickListener!!.onExit(this, mTranslateX, mTranslateY, mWidth, mHeight)
                         return true
                     }
                 } else {
@@ -130,5 +134,42 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
             }
         }
         return super.dispatchTouchEvent(event)
+    }
+
+    /**
+     * 如果位置不一致 图片在屏幕中心消失
+     */
+    fun finishAnimator(activity: AppCompatActivity) {
+        val animatorX = ValueAnimator.ofFloat(mTranslateX, 0F)
+        val animatorY = ValueAnimator.ofFloat(mTranslateY, 0F)
+
+        animatorX.addUpdateListener {
+            mTranslateX = it.animatedValue as Float
+            invalidate()
+        }
+        animatorY.addUpdateListener {
+            mTranslateY = it.animatedValue as Float
+            invalidate()
+        }
+        val animatorSet = AnimatorSet()
+        animatorSet.playTogether(animatorX, animatorY)
+        animatorSet.duration = 500
+        animatorSet.addListener(object : Animator.AnimatorListener {
+            override fun onAnimationRepeat(animation: Animator?) {
+            }
+
+            override fun onAnimationEnd(animation: Animator?) {
+                activity.finish()
+                activity.overridePendingTransition(0, 0 )
+            }
+
+            override fun onAnimationCancel(animation: Animator?) {
+            }
+
+            override fun onAnimationStart(animation: Animator?) {
+            }
+
+        })
+        animatorSet.start()
     }
 }
