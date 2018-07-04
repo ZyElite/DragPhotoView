@@ -7,7 +7,7 @@
 >     如要转载请注明出去
 
 
-###设计与编码
+### 设计与编码
 在编写项目之前，简单体验了一下微信的效果，发现微信的效果主要有以下俩点
 
 > 1. 下滑图片缩放与背景透明度的修改
@@ -15,7 +15,7 @@
 
 确定主要做的功能之后，我们进入编码阶段。（只是简单的小功能，这里就不做设计阶段了）
 
-####编码
+#### 编码
 
 * 在MainActivity的布局文件中放一个RecyclerView用来摆放图片并设置点击事件打开预览界面（PreviewActivity）。并把所点击图片的位置传递到预览界面（PreviewActivity）
 * PreviewActivity布局只放一个ViewPager用来所图片预览时左右滚动效果，在适配器的主要就是用到接下来我们自定义DragPhotoView
@@ -174,5 +174,4 @@
 暂时这样我们的效果就实现了，有疑问可以联系我。
 
 附上实现效果：
-     
-<video height=498 width=510 controls="controls" src="‪C:\Users\user\Desktop\preview.mp4">         
+<iframe height=498 width=510 src="https://github.com/ZyElite/DragPhotoView/blob/master/resources/preview.mp4" frameborder=0 allowfullscreen></iframe>
