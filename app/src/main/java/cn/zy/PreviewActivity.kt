@@ -2,15 +2,14 @@ package cn.zy
 
 import android.animation.Animator
 import android.animation.ValueAnimator
+import android.graphics.RectF
 import android.graphics.drawable.Drawable
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.view.PagerAdapter
+import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import cn.zy.R.id.viewPager
-
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.activity_preview.*
 
@@ -21,7 +20,7 @@ import kotlinx.android.synthetic.main.activity_preview.*
  *
  */
 class PreviewActivity : AppCompatActivity() {
-
+    private var barHeight = 0
     private var mCurrentHeight = 0
     private var mCurrentWidth = 0
     private var mAdapter: ImageAdapter? = null
@@ -32,6 +31,12 @@ class PreviewActivity : AppCompatActivity() {
         val location = intent.getIntArrayExtra("location")
         mCurrentHeight = intent.getIntExtra("height", 0)
         mCurrentWidth = intent.getIntExtra("width", 0)
+
+        val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
+        if (resourceId > 0) {
+            barHeight = resources.getDimensionPixelSize(resourceId)
+        }
+
         val datas = ArrayList<Drawable>()
         datas.add(resources.getDrawable(R.mipmap.ic_1))
         datas.add(resources.getDrawable(R.mipmap.ic_2))
@@ -41,9 +46,11 @@ class PreviewActivity : AppCompatActivity() {
         mAdapter = ImageAdapter(datas)
         viewPager.adapter = mAdapter
         mAdapter!!.setLocation(location, position)
-        mAdapter!!.setTarget(mCurrentHeight, mCurrentWidth)
+        mAdapter!!.setTarget(mCurrentHeight, mCurrentWidth, barHeight)
         viewPager.currentItem = position
         mAdapter!!.setActivity(this)
+
+
     }
 
     override fun onBackPressed() {
@@ -57,11 +64,12 @@ class PreviewActivity : AppCompatActivity() {
         private var mCurrentHeight = 0
         private var mCurrentWidth = 0
         private var mActivity: AppCompatActivity? = null
+        private var barHeight = 0
 
-
-        fun setTarget(targetHeight: Int, targerWidth: Int) {
+        fun setTarget(targetHeight: Int, targerWidth: Int, barHeight: Int) {
             this.mCurrentHeight = targetHeight
             this.mCurrentWidth = targerWidth
+            this.barHeight = barHeight
         }
 
         fun setActivity(activity: AppCompatActivity) {
@@ -76,9 +84,10 @@ class PreviewActivity : AppCompatActivity() {
         override fun instantiateItem(container: ViewGroup, position: Int): Any {
             val dragPhotoView = LayoutInflater.from(container.context).inflate(R.layout.item_preview_layout, null) as DragPhotoView
             Glide.with(container.context).load(datas[position]).into(dragPhotoView)
+            dragPhotoView.setRect(RectF(location!![0].toFloat(), location!![1].toFloat() - barHeight, location!![0].toFloat() + mCurrentWidth.toFloat(), location!![1].toFloat() + mCurrentHeight.toFloat() - barHeight))
             dragPhotoView.setOnExitListener(object : DragPhotoView.OnExitClickListener {
                 override fun onExit(view: DragPhotoView, translateX: Float, translateY: Float, width: Int, height: Int) {
-                    if (position == currentPosition) finish(width, translateX, height, translateY, view) else view.finishAnimator(mActivity!!)
+                    if (position == currentPosition) finish(width, translateX, height, translateY, view) //else view.finishAnimator(mActivity!!)
                 }
 
             })
