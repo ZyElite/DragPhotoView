@@ -57,15 +57,10 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0) {
         mPaint = Paint()
         mPaint!!.color = Color.BLACK
-        testPaint = Paint()
-        testPaint!!.color = Color.RED
     }
-
-    private var testPaint: Paint? = null
 
     override fun onDraw(canvas: Canvas) {
         mPaint?.alpha = mAlpha
-        canvas.drawRect(mRect, testPaint)
         canvas.drawRect(0F, 0F, mWidth.toFloat(), mHeight.toFloat(), mPaint)
         canvas.translate(mTranslateX, mTranslateY)
         canvas.scale(mScale, mScale, (mWidth / 2).toFloat(), (mHeight / 2).toFloat())
@@ -88,7 +83,7 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
     }
 
     interface OnExitClickListener {
-        fun onExit(dragPhotoView: DragPhotoView, translateX: Float, translateY: Float, width: Int, height: Int)
+        fun onExit()
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -160,19 +155,17 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
     fun finishAnimator() {
         mReviewRect = displayRect
         //新的缩放比
-
-
-        val newScale = mRect!!.height() / mReviewRect.height()
-        if (mReviewRect.height() < mReviewRect.width()) {
-
+        val newScale = if (mReviewRect.height() >= mReviewRect.width()) {
+            mRect!!.height() / mReviewRect.height()
+        } else {
+            mRect!!.width() / mReviewRect.width()
         }
-
-
-
         val trueLeft = mTranslateX + (mReviewRect.width() / 2) * (1 - newScale)
         val offsetX = trueLeft - mRect!!.left
         val trueTop = mTranslateY + (mReviewRect.height() / 2) * (1 - newScale) + mReviewRect.top
         val offsetY = trueTop - mRect!!.top
+
+
         val animatorSet = AnimatorSet()
         val valueAnimatorX = ValueAnimator.ofFloat(mTranslateX, mTranslateX - offsetX)
         val valueAnimatorY = ValueAnimator.ofFloat(mTranslateY, mTranslateY - offsetY)
@@ -186,9 +179,10 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
             mTranslateY = animation.animatedValue as Float
             invalidate()
         }
+
         valueAnimatorScale.addUpdateListener { animation ->
-            //  mScale = animation.animatedValue as Float
-            // invalidate()
+            mScale = animation.animatedValue as Float
+            invalidate()
         }
         valueAnimatorAlpha.addUpdateListener { animation ->
             mAlpha = animation.animatedValue as Int
@@ -202,7 +196,9 @@ class DragPhotoView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) 
             }
 
             override fun onAnimationEnd(animation: Animator) {
-
+                if (mOnExitClickListener != null) {
+                    mOnExitClickListener!!.onExit()
+                }
             }
 
             override fun onAnimationCancel(animation: Animator) {

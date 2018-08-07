@@ -31,12 +31,10 @@ class PreviewActivity : AppCompatActivity() {
         val location = intent.getIntArrayExtra("location")
         mCurrentHeight = intent.getIntExtra("height", 0)
         mCurrentWidth = intent.getIntExtra("width", 0)
-
         val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
         if (resourceId > 0) {
             barHeight = resources.getDimensionPixelSize(resourceId)
         }
-
         val datas = ArrayList<Drawable>()
         datas.add(resources.getDrawable(R.mipmap.ic_1))
         datas.add(resources.getDrawable(R.mipmap.ic_2))
@@ -49,7 +47,6 @@ class PreviewActivity : AppCompatActivity() {
         mAdapter!!.setTarget(mCurrentHeight, mCurrentWidth, barHeight)
         viewPager.currentItem = position
         mAdapter!!.setActivity(this)
-
 
     }
 
@@ -86,8 +83,9 @@ class PreviewActivity : AppCompatActivity() {
             Glide.with(container.context).load(datas[position]).into(dragPhotoView)
             dragPhotoView.setRect(RectF(location!![0].toFloat(), location!![1].toFloat() - barHeight, location!![0].toFloat() + mCurrentWidth.toFloat(), location!![1].toFloat() + mCurrentHeight.toFloat() - barHeight))
             dragPhotoView.setOnExitListener(object : DragPhotoView.OnExitClickListener {
-                override fun onExit(view: DragPhotoView, translateX: Float, translateY: Float, width: Int, height: Int) {
-                    if (position == currentPosition) finish(width, translateX, height, translateY, view) //else view.finishAnimator(mActivity!!)
+                override fun onExit() {
+                    mActivity!!.finish()
+                    mActivity!!.overridePendingTransition(0, 0)
                 }
 
             })
@@ -95,51 +93,6 @@ class PreviewActivity : AppCompatActivity() {
             return dragPhotoView
         }
 
-        private fun finish(width: Int, translateX: Float, height: Int, translateY: Float, view: DragPhotoView) {
-            val targetX = location!![0] + mCurrentWidth / 2
-            val targetY = location!![1] + mCurrentHeight / 2
-            val mTranslateX = if (targetX > width / 2) {
-                -translateX + (targetX - width / 2)
-            } else {
-                -translateX - Math.abs(targetX - width / 2)
-            }
-            val mTranslateY = if (targetY > height / 2) {
-                -translateY + (targetY - height / 2)
-            } else {
-                -translateY - Math.abs(targetY - height / 2)
-            }
-
-            val animatorX = ValueAnimator.ofFloat(0F, mTranslateX)
-            val animatorY = ValueAnimator.ofFloat(0F, mTranslateY)
-            animatorX.duration = 500
-            animatorY.duration = 500
-
-            animatorX.addUpdateListener {
-                view.x = it.animatedValue as Float
-            }
-            animatorY.addUpdateListener {
-                view.y = it.animatedValue as Float
-            }
-            animatorX.start()
-            animatorY.start()
-
-            animatorY.addListener(object : Animator.AnimatorListener {
-                override fun onAnimationRepeat(animation: Animator?) {
-                }
-
-                override fun onAnimationEnd(animation: Animator?) {
-                    mActivity!!.finish()
-                    mActivity!!.overridePendingTransition(0, 0)
-                }
-
-                override fun onAnimationCancel(animation: Animator?) {
-                }
-
-                override fun onAnimationStart(animation: Animator?) {
-                }
-
-            })
-        }
 
         override fun isViewFromObject(view: View, `object`: Any): Boolean {
             return view == `object`
@@ -153,5 +106,50 @@ class PreviewActivity : AppCompatActivity() {
             container.removeView(`object` as View?)
         }
     }
+//    private fun finish(width: Int, translateX: Float, height: Int, translateY: Float, view: DragPhotoView) {
+//        val targetX = location!![0] + mCurrentWidth / 2
+//        val targetY = location!![1] + mCurrentHeight / 2
+//        val mTranslateX = if (targetX > width / 2) {
+//            -translateX + (targetX - width / 2)
+//        } else {
+//            -translateX - Math.abs(targetX - width / 2)
+//        }
+//        val mTranslateY = if (targetY > height / 2) {
+//            -translateY + (targetY - height / 2)
+//        } else {
+//            -translateY - Math.abs(targetY - height / 2)
+//        }
+//
+//        val animatorX = ValueAnimator.ofFloat(0F, mTranslateX)
+//        val animatorY = ValueAnimator.ofFloat(0F, mTranslateY)
+//        animatorX.duration = 500
+//        animatorY.duration = 500
+//
+//        animatorX.addUpdateListener {
+//            view.x = it.animatedValue as Float
+//        }
+//        animatorY.addUpdateListener {
+//            view.y = it.animatedValue as Float
+//        }
+//        animatorX.start()
+//        animatorY.start()
+//
+//        animatorY.addListener(object : Animator.AnimatorListener {
+//            override fun onAnimationRepeat(animation: Animator?) {
+//            }
+//
+//            override fun onAnimationEnd(animation: Animator?) {
+//                mActivity!!.finish()
+//                mActivity!!.overridePendingTransition(0, 0)
+//            }
+//
+//            override fun onAnimationCancel(animation: Animator?) {
+//            }
+//
+//            override fun onAnimationStart(animation: Animator?) {
+//            }
+//
+//        })
+//    }
 
 }
